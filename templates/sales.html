@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Sales History - Inventory System{% endblock %}
+
+{% block content %}
+<div class="page-header flex-between">
+    <h2>🧾 Sales & Invoices History</h2>
+    <a href="{{ url_for('pos') }}" class="btn btn-primary">🛒 Open POS & New Bill</a>
+</div>
+
+<div class="table-card">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Invoice No</th>
+                <th>Customer</th>
+                <th>Payment Method</th>
+                <th>Subtotal</th>
+                <th>Discount</th>
+                <th>Tax</th>
+                <th>Grand Total</th>
+                <th>Date & Time</th>
+                <th>Invoice</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for inv in invoices %}
+            <tr>
+                <td><strong>{{ inv.invoice_number }}</strong></td>
+                <td>{{ inv.customer_name }}</td>
+                <td><span class="pay-badge">{{ inv.payment_method }}</span></td>
+                <td>₹{{ "%.2f"|format(inv.subtotal) }}</td>
+                <td>-₹{{ "%.2f"|format(inv.discount) }}</td>
+                <td>+₹{{ "%.2f"|format(inv.tax) }}</td>
+                <td class="text-success"><strong>₹{{ "%.2f"|format(inv.total_amount) }}</strong></td>
+                <td>{{ inv.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td><a href="{{ url_for('view_invoice', invoice_id=inv.id) }}" class="btn-sm btn-secondary">View / Print</a></td>
+            </tr>
+            {% else %}
+            <tr><td colspan="9" class="text-center text-muted">No sales invoices recorded yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

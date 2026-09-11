@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Purchase Orders - ShelfSync{% endblock %}
+
+{% block content %}
+<div class="page-header flex-between">
+    <div>
+        <h2>📦 Supplier Purchase Orders & Procurement</h2>
+        <p class="text-muted" style="font-size: 13px;">Create purchase orders for vendors and auto-receive inventory stock batches</p>
+    </div>
+</div>
+
+<div class="user-management-grid">
+    <div class="form-card">
+        <h3>📝 Issue Purchase Order</h3>
+        <form method="POST" action="{{ url_for('purchase_orders') }}">
+            <div class="form-group">
+                <label for="supplier_name">Select Vendor / Supplier *</label>
+                <select id="supplier_name" name="supplier_name" class="form-control" required>
+                    <option value="">-- Choose Vendor --</option>
+                    {% for s in suppliers %}
+                    <option value="{{ s.name }}">{{ s.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="product_name">Product Description *</label>
+                <input type="text" id="product_name" name="product_name" required class="form-control" placeholder="e.g. Wireless Mouse M185">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group half">
+                    <label for="quantity">Order Quantity *</label>
+                    <input type="number" id="quantity" name="quantity" min="1" value="10" required class="form-control">
+                </div>
+                <div class="form-group half">
+                    <label for="unit_cost">Unit Purchase Cost (₹) *</label>
+                    <input type="number" step="0.01" id="unit_cost" name="unit_cost" required class="form-control" placeholder="450.00">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Issue Purchase Order</button>
+        </form>
+    </div>
+
+    <div class="table-card">
+        <h3>Issued Purchase Orders History</h3>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>PO Number</th>
+                    <th>Supplier</th>
+                    <th>Product</th>
+                    <th>Qty</th>
+                    <th>Total Cost</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for po in orders %}
+                <tr>
+                    <td><strong>{{ po.po_number }}</strong></td>
+                    <td>{{ po.supplier_name }}</td>
+                    <td>{{ po.product_name }}</td>
+                    <td><strong>{{ po.quantity }}</strong></td>
+                    <td>₹{{ "%.2f"|format(po.total_amount or 0) }}</td>
+                    <td>
+                        {% if po.status == 'Received' %}
+                        <span class="status-badge badge-ok">✔ Received</span>
+                        {% else %}
+                        <span class="status-badge badge-low">⏳ Pending</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if po.status != 'Received' %}
+                        <form method="POST" action="{{ url_for('receive_order', order_id=po.id) }}" style="display:inline;">
+                            <button type="submit" class="btn-sm btn-success">Mark Received</button>
+                        </form>
+                        {% else %}
+                        <span class="text-muted" style="font-size: 11px;">Stock Added</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7" class="text-center text-muted">No purchase orders issued yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Stock Audit Log - Inventory System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>📜 Stock Movement Audit Log</h2>
+</div>
+
+<div class="table-card">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Date & Time</th>
+                <th>Product</th>
+                <th>Movement Type</th>
+                <th>Qty Change</th>
+                <th>Unit Cost</th>
+                <th>User</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for m in movements %}
+            <tr>
+                <td>{{ m.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                <td><strong>{{ m.product.name if m.product else 'Deleted Product' }}</strong></td>
+                <td>
+                    <span class="type-badge badge-{{ m.type.lower()|replace(' ', '-') }}">
+                        {{ m.type }}
+                    </span>
+                </td>
+                <td class="{{ 'text-success' if m.quantity_change > 0 else 'text-danger' }}">
+                    <strong>{{ "+" if m.quantity_change > 0 }}{{ m.quantity_change }}</strong>
+                </td>
+                <td>₹{{ "%.2f"|format(m.unit_cost or 0) }}</td>
+                <td>{{ m.user.username if m.user else 'System' }}</td>
+                <td>{{ m.note or '-' }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" class="text-center text-muted">No stock movements logged yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

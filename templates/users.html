@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}User Management - Inventory System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>👥 User & Staff Management</h2>
+</div>
+
+<div class="user-management-grid">
+    <div class="form-card">
+        <h3>➕ Add New User</h3>
+        <form method="POST" action="{{ url_for('users') }}">
+            <div class="form-group">
+                <label for="username">Username *</label>
+                <input type="text" id="username" name="username" required class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password *</label>
+                <input type="password" id="password" name="password" required class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label for="role">Role *</label>
+                <select id="role" name="role" class="form-control">
+                    <option value="staff">Staff (Sales & View)</option>
+                    <option value="admin">Admin (Full Access)</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Create User Account</button>
+        </form>
+    </div>
+
+    <div class="table-card">
+        <h3>System Users</h3>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Role</th>
+                    <th>Created At</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td>{{ u.id }}</td>
+                    <td><strong>{{ u.username }}</strong></td>
+                    <td><span class="role-badge role-{{ u.role }}">{{ u.role }}</span></td>
+                    <td>{{ u.created_at.strftime('%Y-%m-%d') if u.created_at else '-' }}</td>
+                    <td>
+                        {% if u.id != session.get('user_id') %}
+                        <form method="POST" action="{{ url_for('delete_user', user_id=u.id) }}" style="display:inline;" onsubmit="return confirm('Delete user account?');">
+                            <button type="submit" class="btn-sm btn-danger">Delete</button>
+                        </form>
+                        {% else %}
+                        <em class="text-muted">(Current User)</em>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

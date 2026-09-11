@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Restock Product - Inventory System{% endblock %}
+
+{% block content %}
+<div class="form-card">
+    <h2>📦 Restock Stock: {{ product.name }}</h2>
+    <p class="text-muted">Current Quantity: <strong>{{ product.quantity }}</strong> | SKU: {{ product.sku or 'N/A' }}</p>
+
+    <form method="POST" action="{{ url_for('restock_product', product_id=product.id) }}">
+        <div class="form-group">
+            <label for="quantity">Additional Quantity to Add *</label>
+            <input type="number" id="quantity" name="quantity" min="1" required class="form-control" placeholder="e.g. 50">
+        </div>
+
+        <div class="form-group">
+            <label for="cost_price">Unit Purchase Cost (₹)</label>
+            <input type="number" step="0.01" id="cost_price" name="cost_price" value="{{ product.cost_price }}" class="form-control">
+        </div>
+
+        <div class="form-group">
+            <label for="note">Restock Note / Supplier Batch Reference</label>
+            <input type="text" id="note" name="note" class="form-control" placeholder="e.g. Batch #8493 from Vendor X">
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-success">✅ Confirm Restock</button>
+            <a href="{{ url_for('products') }}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

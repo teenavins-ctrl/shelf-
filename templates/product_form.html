@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}{{ action }} Product - Inventory System{% endblock %}
+
+{% block content %}
+<div class="form-card">
+    <h2>{{ action }} Product</h2>
+    <form method="POST" action="{{ url_for('edit_product', product_id=product.id) if product else url_for('add_product') }}">
+        <div class="form-row">
+            <div class="form-group half">
+                <label for="sku">SKU Code</label>
+                <input type="text" id="sku" name="sku" value="{{ product.sku if product else '' }}" class="form-control" placeholder="e.g. ELEC-001">
+            </div>
+            <div class="form-group half">
+                <label for="barcode">Barcode Number</label>
+                <input type="text" id="barcode" name="barcode" value="{{ product.barcode if product else '' }}" class="form-control" placeholder="e.g. 8901234567890">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="name">Product Name *</label>
+            <input type="text" id="name" name="name" value="{{ product.name if product else '' }}" required class="form-control" placeholder="e.g. Wireless Mouse">
+        </div>
+
+        <div class="form-row">
+            <div class="form-group half">
+                <label for="category">Category</label>
+                <input type="text" id="category" name="category" value="{{ product.category if product else '' }}" class="form-control" placeholder="e.g. Electronics">
+            </div>
+            <div class="form-group half">
+                <label for="supplier">Supplier Name</label>
+                <input type="text" id="supplier" name="supplier" value="{{ product.supplier if product else '' }}" class="form-control" placeholder="e.g. TechCorp Ltd">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group half">
+                <label for="cost_price">Unit Purchase Cost Price (₹)</label>
+                <input type="number" step="0.01" id="cost_price" name="cost_price" value="{{ product.cost_price if product else '0' }}" class="form-control">
+            </div>
+            <div class="form-group half">
+                <label for="price">Selling Retail Price (₹) *</label>
+                <input type="number" step="0.01" id="price" name="price" value="{{ product.price if product else '0' }}" required class="form-control">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group half">
+                <label for="quantity">Initial Quantity</label>
+                <input type="number" id="quantity" name="quantity" value="{{ product.quantity if product else '0' }}" class="form-control">
+            </div>
+            <div class="form-group half">
+                <label for="min_stock">Minimum Stock Alert Threshold</label>
+                <input type="number" id="min_stock" name="min_stock" value="{{ product.min_stock if product else '5' }}" class="form-control">
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-success">Save Product</button>
+            <a href="{{ url_for('products') }}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

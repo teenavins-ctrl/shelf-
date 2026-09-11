@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Products - Inventory System{% endblock %}
+
+{% block content %}
+<div class="page-header flex-between">
+    <h2>📦 Product Inventory</h2>
+    <div class="action-buttons">
+        {% if current_role == 'admin' %}
+        <a href="{{ url_for('add_product') }}" class="btn btn-primary">➕ Add New Product</a>
+        <button class="btn btn-secondary" onclick="document.getElementById('importModal').style.display='block'">📁 Import CSV</button>
+        {% endif %}
+        <a href="{{ url_for('export_report', report_type='inventory') }}" class="btn btn-success">📥 Export Inventory CSV</a>
+    </div>
+</div>
+
+<div class="filter-card">
+    <form method="GET" action="{{ url_for('products') }}" class="filter-form">
+        <input type="text" name="name" value="{{ filters.name }}" placeholder="Product Name" class="form-control">
+        <input type="text" name="sku" value="{{ filters.sku }}" placeholder="SKU or Barcode" class="form-control">
+        <input type="text" name="category" value="{{ filters.category }}" placeholder="Category" class="form-control">
+        <input type="text" name="supplier" value="{{ filters.supplier }}" placeholder="Supplier" class="form-control">
+        <button type="submit" class="btn btn-primary">Filter</button>
+        <a href="{{ url_for('products') }}" class="btn btn-secondary">Reset</a>
+    </form>
+</div>
+
+<div class="table-card">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>SKU / Barcode</th>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Supplier</th>
+                <th>Cost Price</th>
+                <th>Selling Price</th>
+                <th>Stock</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in products %}
+            <tr>
+                <td>
+                    <strong>{{ p.sku or '-' }}</strong>
+                    {% if p.barcode %}<div class="text-muted" style="font-size:11px;">📷 {{ p.barcode }}</div>{% endif %}
+                </td>
+                <td><strong>{{ p.name }}</strong></td>
+                <td>{{ p.category or '-' }}</td>
+                <td>{{ p.supplier or '-' }}</td>
+                <td>₹{{ "%.2f"|format(p.cost_price) }}</td>
+                <td><strong>₹{{ "%.2f"|format(p.price) }}</strong></td>
+                <td>{{ p.quantity }}</td>
+                <td>
+                    {% if p.is_out_of_stock %}
+                    <span class="status-badge badge-out">Out of Stock</span>
+                    {% elif p.is_low_stock %}
+                    <span class="status-badge badge-low">Low Stock</span>
+                    {% else %}
+                    <span class="status-badge badge-ok">In Stock</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="table-actions">
+                        <a href="{{ url_for('restock_product', product_id=p.id) }}" class="btn-sm btn-success">Restock</a>
+                        {% if current_role == 'admin' %}
+                        <a href="{{ url_for('edit_product', product_id=p.id) }}" class="btn-sm btn-primary">Edit</a>
+                        <form method="POST" action="{{ url_for('delete_product', product_id=p.id) }}" style="display:inline;" onsubmit="return confirm('Delete {{ p.name }}?');">
+                            <button type="submit" class="btn-sm btn-danger">Delete</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="9" class="text-center text-muted">No products found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- CSV Import Modal -->
+<div id="importModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="document.getElementById('importModal').style.display='none'">&times;</span>
+        <h3>📁 Bulk Import Products from CSV</h3>
+        <p class="text-muted">CSV headers: <code>SKU, Barcode, Name, Category, Supplier, Cost Price, Selling Price, Quantity, Min Stock</code></p>
+        <form method="POST" action="{{ url_for('import_products') }}" enctype="multipart/form-data">
+            <div class="form-group">
+                <input type="file" name="csv_file" accept=".csv" required class="form-control">
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Upload & Import</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

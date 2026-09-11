@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Suppliers - ShelfSync{% endblock %}
+
+{% block content %}
+<div class="page-header flex-between">
+    <div>
+        <h2>🏭 Supplier Directory & Vendor Management</h2>
+        <p class="text-muted" style="font-size: 13px;">Manage product vendors, supplier contact info, and purchase orders</p>
+    </div>
+</div>
+
+<div class="user-management-grid">
+    <div class="form-card">
+        <h3>➕ Register Supplier</h3>
+        <form method="POST" action="{{ url_for('suppliers') }}">
+            <div class="form-group">
+                <label for="name">Supplier Company Name *</label>
+                <input type="text" id="name" name="name" required class="form-control" placeholder="e.g. TechDistributors Ltd">
+            </div>
+
+            <div class="form-group">
+                <label for="contact_person">Contact Representative</label>
+                <input type="text" id="contact_person" name="contact_person" class="form-control" placeholder="e.g. John Doe">
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input type="text" id="phone" name="phone" class="form-control" placeholder="e.g. +91 9876543210">
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" class="form-control" placeholder="e.g. sales@vendor.com">
+            </div>
+
+            <div class="form-group">
+                <label for="address">Office / Warehouse Address</label>
+                <textarea id="address" name="address" class="form-control" rows="2" placeholder="Street, City, State"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Add Supplier Record</button>
+        </form>
+    </div>
+
+    <div class="table-card">
+        <h3>Registered Vendors & Distributors</h3>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Company Name</th>
+                    <th>Contact Person</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>Address</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in suppliers %}
+                <tr>
+                    <td><strong>{{ s.name }}</strong></td>
+                    <td>{{ s.contact_person or '-' }}</td>
+                    <td>{{ s.phone or '-' }}</td>
+                    <td>{{ s.email or '-' }}</td>
+                    <td class="text-muted">{{ s.address or '-' }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" class="text-center text-muted">No suppliers registered yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

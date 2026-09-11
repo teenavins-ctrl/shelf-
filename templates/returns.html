@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Sales Returns - ShelfSync{% endblock %}
+
+{% block content %}
+<div class="page-header flex-between">
+    <div>
+        <h2>↩️ Sales Returns & Refund Processing</h2>
+        <p class="text-muted" style="font-size: 13px;">Process customer returns, issue refunds, and automatically restore item inventory</p>
+    </div>
+</div>
+
+<div class="user-management-grid">
+    <div class="form-card">
+        <h3>📝 Process Customer Return</h3>
+        <form method="POST" action="{{ url_for('sales_returns') }}">
+            <div class="form-group">
+                <label for="invoice_number">Invoice Reference *</label>
+                <input type="text" id="invoice_number" name="invoice_number" required class="form-control" placeholder="e.g. INV-20261001">
+            </div>
+
+            <div class="form-group">
+                <label for="product_name">Product Name *</label>
+                <input type="text" id="product_name" name="product_name" required class="form-control" placeholder="e.g. Wireless Mouse M185">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group half">
+                    <label for="quantity">Returned Qty *</label>
+                    <input type="number" id="quantity" name="quantity" min="1" value="1" required class="form-control">
+                </div>
+                <div class="form-group half">
+                    <label for="refund_amount">Refund Amount (₹) *</label>
+                    <input type="number" step="0.01" id="refund_amount" name="refund_amount" required class="form-control" placeholder="799.00">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="reason">Reason for Return</label>
+                <input type="text" id="reason" name="reason" class="form-control" placeholder="e.g. Defective unit, Wrong size">
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Process Return & Restock</button>
+        </form>
+    </div>
+
+    <div class="table-card">
+        <h3>Sales Return Audit Log</h3>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Return No</th>
+                    <th>Invoice No</th>
+                    <th>Product</th>
+                    <th>Qty</th>
+                    <th>Refund</th>
+                    <th>Reason</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in returns %}
+                <tr>
+                    <td><strong>{{ r.return_number }}</strong></td>
+                    <td>{{ r.invoice_number }}</td>
+                    <td>{{ r.product_name }}</td>
+                    <td><strong>{{ r.quantity }}</strong></td>
+                    <td class="text-danger">₹{{ "%.2f"|format(r.refund_amount) }}</td>
+                    <td>{{ r.reason or '-' }}</td>
+                    <td>{{ r.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7" class="text-center text-muted">No sales returns recorded yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

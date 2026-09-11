@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Reports - Inventory System{% endblock %}
+
+{% block content %}
+<div class="page-header flex-between">
+    <h2>📈 Analytics & Financial Reports</h2>
+    <div class="action-buttons">
+        <a href="{{ url_for('export_report', report_type='sales') }}" class="btn btn-success">📥 Export Sales CSV</a>
+    </div>
+</div>
+
+<div class="filter-card">
+    <div class="btn-group">
+        <a href="{{ url_for('reports', period='daily') }}" class="btn {{ 'btn-primary' if period=='daily' else 'btn-secondary' }}">Daily Report</a>
+        <a href="{{ url_for('reports', period='monthly') }}" class="btn {{ 'btn-primary' if period=='monthly' else 'btn-secondary' }}">Monthly Report</a>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <div class="table-card">
+        <h3>Sales Breakdown ({{ period|capitalize }})</h3>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Time Period</th>
+                    <th>Transactions</th>
+                    <th>Units Sold</th>
+                    <th>Total Revenue</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in rows %}
+                <tr>
+                    <td><strong>{{ r.bucket }}</strong></td>
+                    <td>{{ r.num_sales }}</td>
+                    <td>{{ r.total_qty }}</td>
+                    <td class="text-success"><strong>₹{{ "%.2f"|format(r.total_amount) }}</strong></td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4" class="text-center text-muted">No sales data available.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="table-card">
+        <h3>🏆 Top Selling Products</h3>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Units Sold</th>
+                    <th>Revenue</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tp in top_products %}
+                <tr>
+                    <td><strong>{{ tp[0] }}</strong></td>
+                    <td>{{ tp[1] }}</td>
+                    <td class="text-success">₹{{ "%.2f"|format(tp[2]) }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="3" class="text-center text-muted">No top products data.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

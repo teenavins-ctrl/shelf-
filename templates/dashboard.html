@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - Store Management System{% endblock %}
+
+{% block content %}
+<div class="page-header flex-between">
+    <div>
+        <h2>Store Performance & Financial Overview</h2>
+        <p class="text-muted" style="font-size: 13px;">Real-time stock levels, profit/loss statement, and sales breakdown</p>
+    </div>
+    <div class="header-actions">
+        <a href="{{ url_for('pos') }}" class="btn btn-primary">🛒 Open POS Terminal</a>
+    </div>
+</div>
+
+<!-- Main Metrics Grid -->
+<div class="metrics-grid">
+    <div class="metric-card">
+        <div class="metric-icon icon-revenue">📈</div>
+        <div class="metric-data">
+            <div class="metric-value">₹{{ "%.2f"|format(total_revenue) }}</div>
+            <div class="metric-label">Total Revenue</div>
+        </div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-icon icon-profit {{ 'icon-loss' if net_profit < 0 }}">💵</div>
+        <div class="metric-data">
+            <div class="metric-value {{ 'text-danger' if net_profit < 0 else 'text-success' }}">
+                ₹{{ "%.2f"|format(net_profit) }}
+            </div>
+            <div class="metric-label">Net Profit / Loss</div>
+        </div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-icon icon-sales">🛍️</div>
+        <div class="metric-data">
+            <div class="metric-value">{{ total_sold_units }}</div>
+            <div class="metric-label">Total Units Sold</div>
+        </div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-icon icon-stock">📦</div>
+        <div class="metric-data">
+            <div class="metric-value">{{ total_stock_units }}</div>
+            <div class="metric-label">Remaining In-Stock Units</div>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <!-- Revenue Trend Chart -->
+    <div class="chart-card">
+        <div class="card-header flex-between">
+            <h3>Revenue Trend (Last 7 Days)</h3>
+            <span class="badge-pill">Live Sales Data</span>
+        </div>
+        <canvas id="salesChart" height="130"></canvas>
+    </div>
+
+    <!-- Critical Stock Alerts -->
+    <div class="table-card alert-card">
+        <div class="card-header flex-between">
+            <h3>⚠️ Stock Threshold Alerts</h3>
+            <span class="badge-pill badge-danger-pill">{{ (low_stock_items|length) + (out_of_stock_items|length) }} Action Required</span>
+        </div>
+        {% if low_stock_items or out_of_stock_items %}
+        <table class="data-table compact-table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Remaining</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in out_of_stock_items %}
+                <tr>
+                    <td><strong>{{ p.name }}</strong></td>
+                    <td><strong class="text-danger">0 units</strong></td>
+                    <td><span class="status-badge badge-out">Critical: Out</span></td>
+                    <td><a href="{{ url_for('restock_product', product_id=p.id) }}" class="btn-sm btn-primary">Restock</a></td>
+                </tr>
+                {% endfor %}
+                {% for p in low_stock_items %}
+                <tr>
+                    <td><strong>{{ p.name }}</strong></td>
+                    <td><strong class="text-warning">{{ p.quantity }} left</strong></td>
+                    <td><span class="status-badge badge-low">Low Stock</span></td>
+                    <td><a href="{{ url_for('restock_product', product_id=p.id) }}" class="btn-sm btn-primary">Restock</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+            <p class="text-success font-weight-bold">✔ All stock levels are currently above minimum threshold!</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Secondary Grid: Bestsellers & Recent Invoices -->
+<div class="dashboard-grid" style="margin-top: 20px;">
+    <!-- Bestseller Products -->
+    <div class="table-card">
+        <h3>🏆 Top Selling Products (Bestsellers)</h3>
+        <table class="data-table compact-table">
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>Category</th>
+                    <th>Qty Sold</th>
+                    <th>Total Generated</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for b in bestsellers %}
+                <tr>
+                    <td><strong>{{ b.name }}</strong></td>
+                    <td><span class="type-badge">{{ b.category or 'General' }}</span></td>
+                    <td><strong>{{ b.total_qty }}</strong></td>
+                    <td class="text-success">₹{{ "%.2f"|format(b.total_rev) }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4" class="text-center text-muted">No sales recorded yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Recent Invoices -->
+    <div class="table-card">
+        <h3>🧾 Recent Sales Invoices</h3>
+        <table class="data-table compact-table">
+            <thead>
+                <tr>
+                    <th>Invoice No</th>
+                    <th>Customer</th>
+                    <th>Amount</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for inv in recent_invoices %}
+                <tr>
+                    <td><strong>{{ inv.invoice_number }}</strong></td>
+                    <td>{{ inv.customer_name }}</td>
+                    <td class="text-success"><strong>₹{{ "%.2f"|format(inv.total_amount) }}</strong></td>
+                    <td><a href="{{ url_for('view_invoice', invoice_id=inv.id) }}" class="btn-sm btn-secondary">Invoice</a></td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4" class="text-center text-muted">No recent sales.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+const ctx = document.getElementById('salesChart').getContext('2d');
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: {{ chart_dates|tojson }},
+        datasets: [{
+            label: 'Daily Revenue (₹)',
+            data: {{ chart_sales|tojson }},
+            borderColor: '#2563eb',
+            backgroundColor: 'rgba(37, 99, 235, 0.08)',
+            borderWidth: 2.5,
+            pointBackgroundColor: '#2563eb',
+            fill: true,
+            tension: 0.3
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+            x: { grid: { display: false } }
+        }
+    }
+});
+</script>
+{% endblock %}
+

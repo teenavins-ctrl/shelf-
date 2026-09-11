@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Categories - ShelfSync{% endblock %}
+
+{% block content %}
+<div class="page-header flex-between">
+    <div>
+        <h2>🏷️ Category Taxonomy Management</h2>
+        <p class="text-muted" style="font-size: 13px;">Organize products into custom retail categories for better filtering</p>
+    </div>
+</div>
+
+<div class="user-management-grid">
+    <div class="form-card">
+        <h3>➕ Add New Category</h3>
+        <form method="POST" action="{{ url_for('categories') }}">
+            <div class="form-group">
+                <label for="name">Category Name *</label>
+                <input type="text" id="name" name="name" required class="form-control" placeholder="e.g. Peripherals, Office Wear">
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description</label>
+                <input type="text" id="description" name="description" class="form-control" placeholder="Short description...">
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Save Category</button>
+        </form>
+    </div>
+
+    <div class="table-card">
+        <h3>Active Categories</h3>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Category Name</th>
+                    <th>Description</th>
+                    <th>Created Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in categories %}
+                <tr>
+                    <td><strong>{{ c.name }}</strong></td>
+                    <td>{{ c.description or '-' }}</td>
+                    <td>{{ c.created_at.strftime('%Y-%m-%d') if c.created_at else '-' }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="3" class="text-center text-muted">No categories created.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}ShelfSync - Retail & Inventory Management{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+{% if session.get('user_id') %}
+<header class="topbar">
+    <div class="brand">📦 Shelf<span>Sync</span></div>
+    <nav>
+        <a href="{{ url_for('dashboard') }}" class="{{ 'active' if request.endpoint=='dashboard' }}">📊 Dashboard</a>
+        <a href="{{ url_for('pos') }}" class="{{ 'active' if request.endpoint=='pos' }}">🛒 POS Billing</a>
+        <a href="{{ url_for('products') }}" class="{{ 'active' if request.endpoint in ['products','add_product','edit_product','restock_product'] }}">📦 Inventory</a>
+        <a href="{{ url_for('suppliers') }}" class="{{ 'active' if request.endpoint=='suppliers' }}">🏭 Suppliers</a>
+        <a href="{{ url_for('purchase_orders') }}" class="{{ 'active' if request.endpoint=='purchase_orders' }}">📋 Orders</a>
+        <a href="{{ url_for('categories') }}" class="{{ 'active' if request.endpoint=='categories' }}">🏷️ Categories</a>
+        <a href="{{ url_for('sales_returns') }}" class="{{ 'active' if request.endpoint=='sales_returns' }}">↩️ Returns</a>
+        <a href="{{ url_for('customers') }}" class="{{ 'active' if request.endpoint=='customers' }}">👥 Customers</a>
+
+
+        <a href="{{ url_for('stock_movements') }}" class="{{ 'active' if request.endpoint=='stock_movements' }}">📜 Audit Log</a>
+        <a href="{{ url_for('sales') }}" class="{{ 'active' if request.endpoint in ['sales','view_invoice'] }}">🧾 Sales</a>
+        <a href="{{ url_for('reports') }}" class="{{ 'active' if request.endpoint=='reports' }}">📈 Reports</a>
+        {% if current_role == 'admin' %}
+        <a href="{{ url_for('users') }}" class="{{ 'active' if request.endpoint=='users' }}">🔐 Staff Access</a>
+        {% endif %}
+    </nav>
+    <div class="user-info">
+        {% if critical_alert_count > 0 %}
+        <a href="{{ url_for('dashboard') }}" class="nav-alert-badge" title="Critical Stock Alerts">
+            ⚠️ {{ critical_alert_count }}
+        </a>
+        {% endif %}
+        <span>👤 {{ current_username }} <em class="role-badge">{{ current_role }}</em></span>
+        <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+    </div>
+</header>
+{% endif %}
+
+<main class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-wrap">
+            {% for category, message in messages %}
+                <div class="flash flash-{{ category }}">{{ message }}</div>
+            {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+</main>
+
+</body>
+</html>

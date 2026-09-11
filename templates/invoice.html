@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Invoice #{{ invoice.invoice_number }}</title>
+<style>
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; color: #333; margin: 0; padding: 20px; }
+    .invoice-card { max-width: 700px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    .inv-header { display: flex; justify-content: space-between; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px; }
+    .inv-title { font-size: 24px; font-weight: bold; color: #2c3e50; }
+    .inv-meta { text-align: right; font-size: 14px; color: #666; }
+    .inv-customer { margin-bottom: 20px; padding: 12px; background: #f8f9fa; border-radius: 6px; }
+    .inv-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    .inv-table th, .inv-table td { border-bottom: 1px solid #eee; padding: 10px; text-align: left; }
+    .inv-table th { background: #f1f4f8; color: #495057; font-weight: 600; }
+    .text-right { text-align: right; }
+    .inv-totals { width: 300px; margin-left: auto; margin-bottom: 30px; }
+    .totals-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; }
+    .grand-total { font-size: 18px; font-weight: bold; color: #27ae60; border-top: 2px solid #333; padding-top: 8px; }
+    .btn-wrap { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
+    .btn { padding: 10px 20px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-block; }
+    .btn-primary { background: #3498db; color: white; }
+    .btn-secondary { background: #7f8c8d; color: white; }
+    @media print {
+        body { background: white; padding: 0; }
+        .invoice-card { box-shadow: none; padding: 0; }
+        .btn-wrap { display: none; }
+    }
+</style>
+</head>
+<body>
+<div class="invoice-card">
+    <div class="inv-header">
+        <div>
+            <div class="inv-title">📦 INVOICE</div>
+            <div style="color:#777; font-size:13px;">Retail Store & Inventory System</div>
+        </div>
+        <div class="inv-meta">
+            <div><strong>Invoice No:</strong> {{ invoice.invoice_number }}</div>
+            <div><strong>Date:</strong> {{ invoice.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+            <div><strong>Payment:</strong> {{ invoice.payment_method }}</div>
+        </div>
+    </div>
+
+    <div class="inv-customer">
+        <strong>Billed To:</strong> {{ invoice.customer_name }}
+        {% if invoice.customer_phone %} | 📞 {{ invoice.customer_phone }}{% endif %}
+    </div>
+
+    <table class="inv-table">
+        <thead>
+            <tr>
+                <th>Item Description</th>
+                <th class="text-right">Qty</th>
+                <th class="text-right">Unit Price</th>
+                <th class="text-right">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in invoice.items %}
+            <tr>
+                <td>{{ item.product_name }}</td>
+                <td class="text-right">{{ item.quantity }}</td>
+                <td class="text-right">₹{{ "%.2f"|format(item.unit_price) }}</td>
+                <td class="text-right">₹{{ "%.2f"|format(item.total_price) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="inv-totals">
+        <div class="totals-row">
+            <span>Subtotal:</span>
+            <span>₹{{ "%.2f"|format(invoice.subtotal) }}</span>
+        </div>
+        {% if invoice.discount > 0 %}
+        <div class="totals-row">
+            <span>Discount:</span>
+            <span>- ₹{{ "%.2f"|format(invoice.discount) }}</span>
+        </div>
+        {% endif %}
+        {% if invoice.tax > 0 %}
+        <div class="totals-row">
+            <span>Tax:</span>
+            <span>+ ₹{{ "%.2f"|format(invoice.tax) }}</span>
+        </div>
+        {% endif %}
+        <div class="totals-row grand-total">
+            <span>Total Paid:</span>
+            <span>₹{{ "%.2f"|format(invoice.total_amount) }}</span>
+        </div>
+    </div>
+
+    <div class="btn-wrap">
+        <button onclick="window.print()" class="btn btn-primary">🖨 Print / Save PDF</button>
+        <a href="{{ url_for('pos') }}" class="btn btn-secondary">🛒 Return to POS</a>
+    </div>
+</div>
+</body>
+</html>

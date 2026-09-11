@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+{% block title %}Point of Sale (POS) - Inventory System{% endblock %}
+
+{% block content %}
+<div class="pos-container">
+    <div class="pos-products-panel">
+        <div class="panel-header">
+            <h2>🛒 Point of Sale (POS)</h2>
+            <input type="text" id="posSearch" placeholder="🔍 Search product name, SKU or scan Barcode..." class="form-control pos-search-input" autofocus>
+        </div>
+
+        <div class="pos-grid" id="posGrid">
+            {% for product in products %}
+            <div class="pos-card" onclick="addToCart({{ product.id }}, '{{ product.name|replace("'", "\\'") }}', {{ product.price }}, {{ product.quantity }})">
+                <div class="pos-card-title">{{ product.name }}</div>
+                <div class="pos-card-sku">SKU: {{ product.sku or 'N/A' }}</div>
+                <div class="pos-card-price">₹{{ "%.2f"|format(product.price) }}</div>
+                <div class="pos-card-stock">In Stock: <strong>{{ product.quantity }}</strong></div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="pos-cart-panel">
+        <h3>🧾 Current Order</h3>
+        <div class="customer-inputs">
+            <input type="text" id="custName" placeholder="Customer Name" class="form-control sm-input">
+            <input type="text" id="custPhone" placeholder="Customer Phone" class="form-control sm-input">
+        </div>
+
+        <div class="custom-item-box" style="margin-bottom: 10px; display: flex; gap: 6px;">
+            <input type="text" id="customItemName" placeholder="Quick Custom Item" class="form-control sm-input">
+            <input type="number" id="customItemPrice" placeholder="Price (₹)" class="form-control sm-input" style="width: 90px;">
+            <button onclick="addCustomItem()" class="btn-sm btn-secondary" style="white-space: nowrap;">+ Add</button>
+        </div>
+
+
+        <div class="cart-table-wrap">
+            <table class="cart-table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Qty</th>
+                        <th>Price</th>
+                        <th>Total</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="cartBody">
+                    <tr><td colspan="5" class="empty-cart">No items in cart</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="cart-summary">
+            <div class="summary-row">
+                <span>Subtotal:</span>
+                <span id="cartSubtotal">₹0.00</span>
+            </div>
+            <div class="summary-row">
+                <span>Discount (₹):</span>
+                <input type="number" id="cartDiscount" value="0" min="0" step="0.01" onchange="renderCart()" class="summary-input">
+            </div>
+            <div class="summary-row">
+                <span>Tax (%):</span>
+                <input type="number" id="cartTaxPct" value="0" min="0" step="0.1" onchange="renderCart()" class="summary-input">
+            </div>
+            <div class="summary-row">
+                <span>Payment Method:</span>
+                <select id="payMethod" class="summary-select">
+                    <option value="Cash">Cash</option>
+                    <option value="Card">Card / POS</option>
+                    <option value="UPI">UPI / Online</option>
+                </select>
+            </div>
+            <div class="summary-row total-row">
+                <span>Grand Total:</span>
+                <span id="cartTotal">₹0.00</span>
+            </div>
+            <button class="btn btn-success btn-block checkout-btn" onclick="processCheckout()">✅ Complete Checkout & Print Invoice</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let cart = [];
+const productsData = [
+    {% for product in products %}
+    { id: {{ product.id }}, name: "{{ product.name|replace('"', '\\"') }}", price: {{ product.price }}, stock: {{ product.quantity }}, sku: "{{ product.sku or '' }}", barcode: "{{ product.barcode or '' }}" },
+    {% endfor %}
+];
+
+document.getElementById('posSearch').addEventListener('input', function(e) {
+    const query = e.target.value.toLowerCase().trim();
+    const cards = document.querySelectorAll('.pos-card');
+    
+    // Auto add if barcode matches exactly
+    const exactMatch = productsData.find(p => p.barcode && p.barcode.toLowerCase() === query);
+    if(exactMatch && exactMatch.stock > 0) {
+        addToCart(exactMatch.id, exactMatch.name, exactMatch.price, exactMatch.stock);
+        e.target.value = '';
+        return;
+    }
+
+    productsData.forEach((p, idx) => {
+        const match = p.name.toLowerCase().includes(query) || p.sku.toLowerCase().includes(query) || p.barcode.toLowerCase().includes(query);
+        cards[idx].style.display = match ? 'block' : 'none';
+    });
+});
+
+function addToCart(id, name, price, maxStock) {
+    const existing = cart.find(item => item.id === id);
+    if(existing) {
+        if(existing.qty + 1 > maxStock) {
+            alert('Cannot add more than available stock!');
+            return;
+        }
+        existing.qty++;
+    } else {
+        if(maxStock < 1) {
+            alert('Item out of stock!');
+            return;
+        }
+        cart.push({ id, name, price, qty: 1, maxStock });
+    }
+    renderCart();
+}
+
+function addCustomItem() {
+    const nameInput = document.getElementById('customItemName');
+    const priceInput = document.getElementById('customItemPrice');
+    const name = nameInput.value.trim();
+    const price = parseFloat(priceInput.value);
+
+    if(!name || isNaN(price) || price <= 0) {
+        alert('Please enter a valid custom item name and price.');
+        return;
+    }
+
+    const customId = -Date.now(); // negative ID for ad-hoc items
+    cart.push({ id: customId, name: name + ' (Custom)', price: price, qty: 1, maxStock: 999 });
+    nameInput.value = '';
+    priceInput.value = '';
+    renderCart();
+}
+
+
+function updateQty(id, delta) {
+    const item = cart.find(i => i.id === id);
+    if(!item) return;
+    item.qty += delta;
+    if(item.qty > item.maxStock) {
+        alert('Stock limit reached.');
+        item.qty = item.maxStock;
+    }
+    if(item.qty <= 0) {
+        cart = cart.filter(i => i.id !== id);
+    }
+    renderCart();
+}
+
+function removeFromCart(id) {
+    cart = cart.filter(i => i.id !== id);
+    renderCart();
+}
+
+function renderCart() {
+    const tbody = document.getElementById('cartBody');
+    if(cart.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="empty-cart">No items in cart</td></tr>';
+        document.getElementById('cartSubtotal').innerText = '₹0.00';
+        document.getElementById('cartTotal').innerText = '₹0.00';
+        return;
+    }
+
+    let subtotal = 0;
+    tbody.innerHTML = '';
+    cart.forEach(item => {
+        const itemTotal = item.price * item.qty;
+        subtotal += itemTotal;
+        tbody.innerHTML += `
+            <tr>
+                <td><strong>${item.name}</strong></td>
+                <td>
+                    <button class="qty-btn" onclick="updateQty(${item.id}, -1)">-</button>
+                    ${item.qty}
+                    <button class="qty-btn" onclick="updateQty(${item.id}, 1)">+</button>
+                </td>
+                <td>₹${item.price.toFixed(2)}</td>
+                <td>₹${itemTotal.toFixed(2)}</td>
+                <td><button class="del-cart-btn" onclick="removeFromCart(${item.id})">×</button></td>
+            </tr>
+        `;
+    });
+
+    const discount = parseFloat(document.getElementById('cartDiscount').value) || 0;
+    const taxPct = parseFloat(document.getElementById('cartTaxPct').value) || 0;
+
+    let tax = (subtotal - discount) * (taxPct / 100);
+    if(tax < 0) tax = 0;
+    const total = subtotal - discount + tax;
+
+    document.getElementById('cartSubtotal').innerText = `₹${subtotal.toFixed(2)}`;
+    document.getElementById('cartTotal').innerText = `₹${total.toFixed(2)}`;
+}
+
+function processCheckout() {
+    if(cart.length === 0) {
+        alert('Cart is empty.');
+        return;
+    }
+
+    const payload = {
+        cart: cart,
+        customer_name: document.getElementById('custName').value,
+        customer_phone: document.getElementById('custPhone').value,
+        discount: parseFloat(document.getElementById('cartDiscount').value) || 0,
+        tax_pct: parseFloat(document.getElementById('cartTaxPct').value) || 0,
+        payment_method: document.getElementById('payMethod').value
+    };
+
+    fetch('/pos/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.success) {
+            window.location.href = '/invoices/' + data.invoice_id;
+        } else {
+            alert('Checkout failed: ' + data.message);
+        }
+    })
+    .catch(err => alert('Error processing transaction: ' + err));
+}
+</script>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Customer Loyalty - ShelfSync{% endblock %}
+
+{% block content %}
+<div class="page-header flex-between">
+    <div>
+        <h2>👥 Customer Profiles & Loyalty Rewards</h2>
+        <p class="text-muted" style="font-size: 13px;">Track customer purchasing history and automatic loyalty points earned (1 point per ₹100)</p>
+    </div>
+</div>
+
+<div class="table-card">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Customer Name</th>
+                <th>Phone Number</th>
+                <th>Total Purchases</th>
+                <th>Total Spent</th>
+                <th>🎁 Loyalty Points</th>
+                <th>Member Since</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in customers %}
+            <tr>
+                <td><strong>{{ c.name }}</strong></td>
+                <td>{{ c.phone or '-' }}</td>
+                <td><strong>{{ c.invoices|length }} sales</strong></td>
+                <td class="text-success"><strong>₹{{ "%.2f"|format(c.total_spent or 0) }}</strong></td>
+                <td><span class="badge-pill" style="background:#fef3c7; color:#b45309;">⭐ {{ c.loyalty_points or 0 }} pts</span></td>
+                <td>{{ c.created_at.strftime('%Y-%m-%d') if c.created_at else '-' }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" class="text-center text-muted">No customer purchase profiles recorded yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
