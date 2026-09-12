@@ -31,16 +31,16 @@ app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "shelfsync-enterprise-secret-
 
 db_url = os.getenv("DATABASE_URL")
 if db_url:
-    # Fix potential postgresql scheme compatibility (postgres:// to postgresql://)
     if db_url.startswith("postgres://"):
         db_url = db_url.replace("postgres://", "postgresql://", 1)
     app.config["SQLALCHEMY_DATABASE_URI"] = db_url
 else:
-    # Check if running in Vercel serverless environment
-    if os.getenv("VERCEL"):
+    # Always use /tmp/inventory.db if running in Vercel or read-only environment
+    if os.getenv("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
         app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////tmp/inventory.db"
     else:
         app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(BASE_DIR, "inventory.db")
+
 
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
