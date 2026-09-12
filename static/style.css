@@ -1,13 +1,13 @@
-/* Professional Enterprise Design System */
+/* The Souled Store Inspired Modern UI Design System */
 :root {
-    --primary: #0f172a;
-    --primary-light: #1e293b;
+    --primary: #1e293b;
+    --brand-rust: #8b3e10;      /* Top thin rust-brown accent bar */
+    --brand-red: #e11d48;       /* Ghost icon red accent */
     --accent: #2563eb;
-    --accent-hover: #1d4ed8;
     --success: #16a34a;
     --warning: #d97706;
     --danger: #dc2626;
-    --bg: #f8fafc;
+    --bg: #ffffff;              /* Clean crisp white background */
     --card-bg: #ffffff;
     --text: #0f172a;
     --text-muted: #64748b;
@@ -18,18 +18,177 @@
 
 body { background-color: var(--bg); color: var(--text); min-height: 100vh; }
 
-.topbar { background-color: var(--primary); color: white; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; height: 60px; border-bottom: 1px solid var(--primary-light); }
-.brand { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 6px; letter-spacing: -0.3px; }
-.brand span { color: #60a5fa; }
+/* 1. Top Thin Rust-Brown Accent Bar */
+.tss-top-accent-bar {
+    height: 4px;
+    background-color: var(--brand-rust);
+    width: 100%;
+}
 
-nav { display: flex; gap: 4px; }
-nav a { color: #94a3b8; text-decoration: none; padding: 8px 12px; border-radius: 6px; font-size: 13px; font-weight: 500; transition: all 0.15s; }
-nav a:hover, nav a.active { background-color: var(--primary-light); color: white; }
+/* 2. Main Header Bar (White background, 3-column layout) */
+.tss-header {
+    background-color: #ffffff;
+    height: 64px;
+    padding: 0 36px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #f1f5f9;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+    position: relative;
+    z-index: 100;
+}
 
-.user-info { display: flex; align-items: center; gap: 12px; font-size: 13px; color: #cbd5e1; }
-.role-badge { background-color: #334155; color: #93c5fd; padding: 2px 8px; border-radius: 4px; font-size: 11px; text-transform: uppercase; font-weight: 600; }
-.logout-btn { color: #fca5a5; text-decoration: none; font-weight: 500; font-size: 13px; margin-left: 6px; }
-.logout-btn:hover { color: #ef4444; }
+/* Left Section: Mobile Icon & Main Navigation Links */
+.tss-header-left {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.tss-menu-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+}
+
+.tss-main-nav {
+    display: flex;
+    gap: 28px;
+    align-items: center;
+}
+
+.tss-nav-link {
+    text-decoration: none;
+    color: #1e293b;
+    font-weight: 800;
+    font-size: 13.5px;
+    letter-spacing: 0.5px;
+    transition: color 0.15s;
+}
+
+.tss-nav-link:hover, .tss-nav-link.active {
+    color: var(--brand-red);
+}
+
+/* Center Brand Logo (Ghost Icon + ShelfSync) */
+.tss-header-center {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.tss-logo-brand {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.tss-ghost-badge {
+    display: flex;
+    align-items: center;
+}
+
+.tss-brand-text {
+    font-size: 21px;
+    font-weight: 900;
+    color: #1e293b;
+    letter-spacing: -0.5px;
+    font-family: Arial, sans-serif;
+}
+
+.tss-brand-text span {
+    color: var(--brand-red);
+}
+
+/* Right Section: Pill Search Bar & Action Icons */
+.tss-header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.tss-search-pill {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.tss-search-pill input {
+    width: 240px;
+    padding: 7px 55px 7px 16px;
+    border-radius: 20px;
+    border: 1px solid #cbd5e1;
+    font-size: 12px;
+    outline: none;
+    color: #334155;
+    transition: all 0.2s ease;
+}
+
+.tss-search-pill input:focus {
+    width: 280px;
+    border-color: #1e293b;
+    box-shadow: 0 0 0 3px rgba(30, 41, 59, 0.08);
+}
+
+.tss-search-icons {
+    position: absolute;
+    right: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    pointer-events: none;
+}
+
+.tss-action-icons {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.tss-icon-btn {
+    color: #1e293b;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.15s, color 0.15s;
+}
+
+.tss-icon-btn:hover {
+    color: var(--brand-red);
+    transform: scale(1.08);
+}
+
+/* 3. Secondary Category Ribbon Bar */
+.tss-sub-nav {
+    background-color: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0 36px;
+    display: flex;
+    gap: 28px;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.tss-sub-nav a {
+    text-decoration: none;
+    color: #475569;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 10px 0;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s ease;
+}
+
+.tss-sub-nav a:hover, .tss-sub-nav a.active {
+    color: #0f172a;
+    border-bottom-color: var(--brand-rust);
+}
 
 .container { max-width: 1350px; margin: 24px auto; padding: 0 20px; }
 
