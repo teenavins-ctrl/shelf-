@@ -1057,14 +1057,179 @@ def import_products():
 def init_db():
     with app.app_context():
         db.create_all()
-        if not User.query.filter_by(username="admin").first():
-            admin = User(username="admin", role="admin")
-            admin.set_password("admin123")
-            db.session.add(admin)
+
+        # Seed admin user
+        admin_user = User.query.filter_by(username="admin").first()
+        if not admin_user:
+            admin_user = User(username="admin", role="admin")
+            admin_user.set_password("admin123")
+            db.session.add(admin_user)
+
+        # Seed staff user
+        staff_user = User.query.filter_by(username="staff1").first()
+        if not staff_user:
+            staff_user = User(username="staff1", role="staff")
+            staff_user.set_password("staff123")
+            db.session.add(staff_user)
+
+        db.session.commit()
+        user_id = admin_user.id if admin_user else 1
+
+        # Seed Categories
+        if Category.query.count() == 0:
+            cats = [
+                Category(name="Electronics", description="Gadgets, peripherals and hardware"),
+                Category(name="Office Supplies", description="Ergonomic furniture and desks"),
+                Category(name="Accessories", description="Cables, adapters and accessories"),
+                Category(name="Audio", description="Headphones, speakers and audio equipment"),
+                Category(name="Stationery", description="Notebooks, paper and writing instruments"),
+            ]
+            db.session.add_all(cats)
             db.session.commit()
-            print("ShelfSync Admin created: admin / admin123")
+
+        # Seed Suppliers
+        if Supplier.query.count() == 0:
+            sups = [
+                Supplier(name="TechDistributors Ltd", contact_person="John Doe", phone="9876543210", email="sales@techdist.com", address="102 Tech Park, Electronics City"),
+                Supplier(name="VisionTech", contact_person="Sarah Smith", phone="9876543211", email="orders@visiontech.com", address="45 Cyber Towers, Tech Zone"),
+                Supplier(name="Comfort Desk Co", contact_person="Robert Brown", phone="9876543212", email="info@comfortdesk.com", address="78 Industrial Estate, Hub 2"),
+                Supplier(name="PaperWorks", contact_person="Anita Roy", phone="9876543213", email="contact@paperworks.in", address="12 Commerce Street, Block A"),
+            ]
+            db.session.add_all(sups)
+            db.session.commit()
+
+        # Seed Products & Stock Movements
+        if Product.query.count() == 0:
+            products_data = [
+                {"sku": "ELEC-001", "barcode": "890123456701", "name": "Logitech Wireless Mouse M185", "category": "Electronics", "supplier": "TechDistributors Ltd", "cost_price": 450.0, "price": 799.0, "quantity": 35, "min_stock": 10},
+                {"sku": "ELEC-002", "barcode": "890123456702", "name": "Mechanical Gaming Keyboard K55", "category": "Electronics", "supplier": "TechDistributors Ltd", "cost_price": 1800.0, "price": 2999.0, "quantity": 18, "min_stock": 5},
+                {"sku": "ELEC-003", "barcode": "890123456703", "name": "27-inch 4K UHD Monitor", "category": "Electronics", "supplier": "VisionTech", "cost_price": 18500.0, "price": 24999.0, "quantity": 4, "min_stock": 5},
+                {"sku": "OFF-001", "barcode": "890123456704", "name": "Ergonomic Mesh Office Chair", "category": "Office Supplies", "supplier": "Comfort Desk Co", "cost_price": 4200.0, "price": 6999.0, "quantity": 12, "min_stock": 3},
+                {"sku": "OFF-002", "barcode": "890123456705", "name": "Adjustable Standing Desk (White)", "category": "Office Supplies", "supplier": "Comfort Desk Co", "cost_price": 12000.0, "price": 17999.0, "quantity": 2, "min_stock": 4},
+                {"sku": "ACC-001", "barcode": "890123456706", "name": "USB-C Multiport Adapter Hub 7-in-1", "category": "Accessories", "supplier": "TechDistributors Ltd", "cost_price": 850.0, "price": 1499.0, "quantity": 45, "min_stock": 15},
+                {"sku": "ACC-002", "barcode": "890123456707", "name": "Noise Cancelling Wireless Headphones", "category": "Audio", "supplier": "VisionTech", "cost_price": 3500.0, "price": 5499.0, "quantity": 0, "min_stock": 8},
+                {"sku": "ACC-003", "barcode": "890123456708", "name": "Heavy Duty Surge Protector Extension", "category": "Accessories", "supplier": "TechDistributors Ltd", "cost_price": 320.0, "price": 649.0, "quantity": 60, "min_stock": 20},
+                {"sku": "APP-001", "barcode": "890123456709", "name": "Smart Desk Lamp with Qi Charger", "category": "Electronics", "supplier": "VisionTech", "cost_price": 1100.0, "price": 1899.0, "quantity": 8, "min_stock": 10},
+                {"sku": "OFF-003", "barcode": "890123456710", "name": "A4 Executive Notebook (Pack of 3)", "category": "Stationery", "supplier": "PaperWorks", "cost_price": 150.0, "price": 349.0, "quantity": 100, "min_stock": 25},
+            ]
+            added_prods = []
+            for pdata in products_data:
+                p = Product(**pdata)
+                db.session.add(p)
+                db.session.flush()
+                added_prods.append(p)
+
+                sm = StockMovement(
+                    product_id=p.id,
+                    type="Initial Stock",
+                    quantity_change=p.quantity,
+                    unit_cost=p.cost_price,
+                    user_id=user_id,
+                    note="Initial inventory creation"
+                )
+                db.session.add(sm)
+
+            db.session.commit()
+
+        # Seed Customers
+        if Customer.query.count() == 0:
+            custs = [
+                Customer(name="Rohan Sharma", phone="9876543210", email="rohan@example.com", total_spent=8500.0, loyalty_points=85),
+                Customer(name="Priya Patel", phone="9876543211", email="priya@example.com", total_spent=14200.0, loyalty_points=142),
+                Customer(name="Amit Kumar", phone="9876543212", email="amit@example.com", total_spent=3499.0, loyalty_points=34),
+                Customer(name="Sneha Gupta", phone="9876543213", email="sneha@example.com", total_spent=24999.0, loyalty_points=249),
+            ]
+            db.session.add_all(custs)
+            db.session.commit()
+
+        # Seed Sales, Invoices & InvoiceItems over past 7 days
+        if Invoice.query.count() == 0:
+            all_prods = Product.query.all()
+            all_custs = Customer.query.all()
+            now = datetime.utcnow()
+            inv_count = 1001
+
+            for day_offset in range(6, -1, -1):
+                sale_date = now - timedelta(days=day_offset, hours=3)
+                if not all_prods: break
+
+                p1 = all_prods[(day_offset) % len(all_prods)]
+                p2 = all_prods[(day_offset + 2) % len(all_prods)]
+                c = all_custs[(day_offset) % len(all_custs)] if all_custs else None
+
+                q1, q2 = 1, 2
+                subtotal = (p1.price * q1) + (p2.price * q2)
+                discount = 50.0 if subtotal > 1500 else 0.0
+                tax = round((subtotal - discount) * 0.18, 2)
+                total = round(subtotal - discount + tax, 2)
+                inv_no = f"INV-2026{inv_count}"
+                inv_count += 1
+
+                inv = Invoice(
+                    invoice_number=inv_no,
+                    customer_name=c.name if c else "Walk-in Customer",
+                    customer_phone=c.phone if c else "",
+                    customer_id=c.id if c else None,
+                    subtotal=subtotal,
+                    discount=discount,
+                    tax=tax,
+                    total_amount=total,
+                    payment_method="UPI" if day_offset % 2 == 0 else "Card",
+                    created_at=sale_date,
+                    user_id=user_id
+                )
+                db.session.add(inv)
+                db.session.flush()
+
+                for prod, q in [(p1, q1), (p2, q2)]:
+                    amt = prod.price * q
+                    s = Sale(product_id=prod.id, quantity=q, amount=amt, sale_date=sale_date, invoice_id=inv.id)
+                    db.session.add(s)
+
+                    item = InvoiceItem(
+                        invoice_id=inv.id,
+                        product_id=prod.id,
+                        product_name=prod.name,
+                        quantity=q,
+                        unit_price=prod.price,
+                        total_price=amt
+                    )
+                    db.session.add(item)
+
+                    sm = StockMovement(
+                        product_id=prod.id,
+                        type="Sale",
+                        quantity_change=-q,
+                        unit_cost=prod.cost_price,
+                        user_id=user_id,
+                        note=f"POS Sale: {inv_no}",
+                        timestamp=sale_date
+                    )
+                    db.session.add(sm)
+
+            db.session.commit()
+
+        # Seed Purchase Orders
+        if PurchaseOrder.query.count() == 0:
+            pos = [
+                PurchaseOrder(po_number="PO-20260901", supplier_name="TechDistributors Ltd", product_name="Logitech Wireless Mouse M185", quantity=20, unit_cost=450.0, total_amount=9000.0, status="Received", created_at=datetime.utcnow()-timedelta(days=10), received_at=datetime.utcnow()-timedelta(days=9)),
+                PurchaseOrder(po_number="PO-20260902", supplier_name="VisionTech", product_name="Noise Cancelling Wireless Headphones", quantity=15, unit_cost=3500.0, total_amount=52500.0, status="Pending", created_at=datetime.utcnow()-timedelta(days=2)),
+            ]
+            db.session.add_all(pos)
+            db.session.commit()
+
+        # Seed Sales Returns
+        if SalesReturn.query.count() == 0:
+            returns = [
+                SalesReturn(return_number="RET-20260901", invoice_number="INV-20261001", product_name="Logitech Wireless Mouse M185", quantity=1, refund_amount=799.0, reason="Customer changed mind", created_at=datetime.utcnow()-timedelta(days=1))
+            ]
+            db.session.add_all(returns)
+            db.session.commit()
+
+        print("ShelfSync initialized with comprehensive dummy data for all modules!")
 
 
 if __name__ == "__main__":
     init_db()
     app.run(debug=True, host="0.0.0.0", port=5000)
+
