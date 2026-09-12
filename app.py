@@ -29,16 +29,23 @@ load_dotenv(os.path.join(BASE_DIR, ".env"))
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "shelfsync-enterprise-secret-key-2026")
 
-default_sqlite = "sqlite:///" + os.path.join(BASE_DIR, "inventory.db")
-db_uri = os.getenv("DATABASE_URL", default_sqlite)
-if db_uri.startswith("sqlite:///") and not db_uri.startswith("sqlite:////") and not ":" in db_uri[10:]:
-    db_filename = db_uri.replace("sqlite:///", "")
-    db_uri = "sqlite:///" + os.path.join(BASE_DIR, db_filename)
+db_url = os.getenv("DATABASE_URL")
+if db_url:
+    # Fix potential postgresql scheme compatibility (postgres:// to postgresql://)
+    if db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql://", 1)
+    app.config["SQLALCHEMY_DATABASE_URI"] = db_url
+else:
+    # Check if running in Vercel serverless environment
+    if os.getenv("VERCEL"):
+        app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////tmp/inventory.db"
+    else:
+        app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(BASE_DIR, "inventory.db")
 
-app.config["SQLALCHEMY_DATABASE_URI"] = db_uri
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
+
 
 
 # ---------------------------------------------------------------------------
